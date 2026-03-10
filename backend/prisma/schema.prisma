@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id               String               @id @default(uuid())
+  name             String
+  email            String               @unique
+  password         String
+  role             Role                 @default(USER)
+  receiveUpdates   Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  passwordResets   PasswordResetToken[]
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  places    Place[]
+}
+
+model Place {
+  id           String   @id @default(uuid())
+  name         String
+  description  String
+  address      String
+  neighborhood String
+  latitude     Float
+  longitude    Float
+  imageUrl     String?
+  isActive     Boolean  @default(true)
+
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Suggestion {
+  id           String           @id @default(uuid())
+  name         String
+  description  String?
+  address      String
+  neighborhood String
+  latitude     Float?
+  longitude    Float?
+  categoryName String
+  status       SuggestionStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
