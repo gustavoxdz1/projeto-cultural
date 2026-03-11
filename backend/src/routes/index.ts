@@ -8,7 +8,7 @@ import { perfilRoutes } from './perfil.routes';
 export const routes = Router();
 
 routes.get('/health', (_req, res) => {
-  return res.json({ ok: true });
+  return res.json({ ok: "Server is running" });
 });
 
 routes.use('/auth', authRoutes);

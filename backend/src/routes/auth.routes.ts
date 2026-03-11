@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { env } from '../config/env';
+import { enviarEmailBoasVindas, enviarEamailRecuperacaoSenha } from '../services/enviarEmails';
 
 export const authRoutes = Router();
 
@@ -37,6 +38,11 @@ authRoutes.post('/cadastro', async (req, res) => {
       receiveUpdates: receiveUpdates ?? false,
     },
   });
+  try{
+    await enviarEmailBoasVindas(user.name, user.email);
+  } catch (error) {
+    console.error('Erro ao enviar e-mail de boas-vindas:', error);
+  }
 
   return res.status(201).json({
     message: 'Usuário cadastrado com sucesso.',
@@ -122,12 +128,21 @@ authRoutes.post('/esqueci-senha', async (req, res) => {
     },
   });
 
+  try {
+    await enviarEamailRecuperacaoSenha(user.name, user.email, token);
+  } catch (error) {
+    console.error('Erro ao enviar e-mail de recuperação de senha:', error);
+
+    await prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    return res.status(500).json({ message: 'Não foi possível enviar o e-mail de recuperação.' });
+  }
+
   return res.json({
-    message: 'Token de recuperação gerado.',
-    token,
-    expiresAt,
-  });
-});
+  message: 'Se o e-mail existir, enviaremos as instruções de recuperação.',
+});});
 
 authRoutes.post('/redefinir-senha', async (req, res) => {
   const bodySchema = z.object({
