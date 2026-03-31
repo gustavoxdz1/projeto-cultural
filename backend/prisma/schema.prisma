@@ -46,8 +46,8 @@ model Place {
   description  String
   address      String
   neighborhood String
-  latitude     Float
-  longitude    Float
+  latitude     Float?
+  longitude    Float?
   imageUrl     String?
   isActive     Boolean  @default(true)
 

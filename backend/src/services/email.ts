@@ -1,12 +1,5 @@
 import { Resend } from "resend";
-
-const chaveApi = process.env.RESEND_API_KEY ;
-
-if (!chaveApi) {
-  throw new Error("A chave de API do Resend não está definida.");
-}
-
-export const resend = new Resend(chaveApi);
+import { env } from "../config/env";
 
 type DadosEmail = {
   to: string;
@@ -15,9 +8,18 @@ type DadosEmail = {
   text?: string;
 };
 
+function getResendClient() {
+  if (!env.resendApiKey) {
+    throw new Error("RESEND_API_KEY não foi configurada.");
+  }
+
+  return new Resend(env.resendApiKey);
+}
+
 export async function enviarEmail({to, subject, html, text}: DadosEmail) {
+    const resend = getResendClient();
     const {data, error} = await resend.emails.send({
-        from: process.env.EMAIL_FROM || "Portal Cultural <no-reply@updates.seudominio.com>",
+        from: env.emailFrom || "Portal Cultural <no-reply@updates.seudominio.com>",
         to: [to],
         subject: subject,
         html: html,

@@ -62,6 +62,16 @@ categoryRoutes.delete('/:id', ensureAuth, ensureAdmin, async (req, res) => {
 
   const { id } = paramsSchema.parse(req.params);
 
+  const placesCount = await prisma.place.count({
+    where: { categoryId: id },
+  });
+
+  if (placesCount > 0) {
+    return res.status(409).json({
+      message: 'Não é possível excluir uma categoria que possui locais vinculados.',
+    });
+  }
+
   await prisma.category.delete({
     where: { id },
   });

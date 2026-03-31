@@ -83,8 +83,8 @@ placeRoutes.post('/', ensureAuth, ensureAdmin, async (req, res) => {
     description: z.string().min(5),
     address: z.string().min(5),
     neighborhood: z.string().min(2),
-    latitude: z.number(),
-    longitude: z.number(),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
     imageUrl: z.string().url().optional().or(z.literal('')),
     categoryId: z.string().uuid(),
   });
@@ -95,6 +95,8 @@ placeRoutes.post('/', ensureAuth, ensureAdmin, async (req, res) => {
     data: {
       ...data,
       imageUrl: data.imageUrl || null,
+      ...(data.latitude !== undefined ? { latitude: data.latitude } : {}),
+      ...(data.longitude !== undefined ? { longitude: data.longitude } : {}),
     },
   });
 
@@ -111,8 +113,8 @@ placeRoutes.put('/:id', ensureAuth, ensureAdmin, async (req, res) => {
     description: z.string().min(5),
     address: z.string().min(5),
     neighborhood: z.string().min(2),
-    latitude: z.number(),
-    longitude: z.number(),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
     imageUrl: z.string().url().optional().or(z.literal('')),
     categoryId: z.string().uuid(),
   });
@@ -125,6 +127,8 @@ placeRoutes.put('/:id', ensureAuth, ensureAdmin, async (req, res) => {
     data: {
       ...data,
       imageUrl: data.imageUrl || null,
+      ...(data.latitude !== undefined ? { latitude: data.latitude } : {}),
+      ...(data.longitude !== undefined ? { longitude: data.longitude } : {}),
     },
   });
 

@@ -1,4 +1,5 @@
 import { enviarEmail } from "./email";
+import { env } from "../config/env";
 
 export async function enviarEmailBoasVindas(nome: string, email: string) {
     return enviarEmail({
@@ -19,8 +20,7 @@ export async function enviarEamailRecuperacaoSenha(
     email: string,
     token: string
 ) {
-    const urlFrontend = process.env.URL_FRONTEND || "http://localhost:5173";
-    const linkRecuperacao = `${urlFrontend}/recuperar-senha?token=${token}`;
+    const linkRecuperacao = `${env.frontendUrl}/recuperar-senha?token=${token}`;
     
     return enviarEmail({
         to: email,

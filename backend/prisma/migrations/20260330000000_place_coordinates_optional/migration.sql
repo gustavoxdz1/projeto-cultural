@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Place"
+ALTER COLUMN "latitude" DROP NOT NULL,
+ALTER COLUMN "longitude" DROP NOT NULL;
