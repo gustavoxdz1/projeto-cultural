@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { slugify } from '../utils/slug';
+import { requiredText } from '../utils/validation';
 import { ensureAuth } from '../middlewares/auth';
 import { ensureAdmin } from '../middlewares/ensureAdmin';
 
@@ -17,7 +18,7 @@ categoryRoutes.get('/', async (_req, res) => {
 
 categoryRoutes.post('/', ensureAuth, ensureAdmin, async (req, res) => {
   const bodySchema = z.object({
-    name: z.string().min(2),
+    name: requiredText('Nome da categoria', 2),
   });
 
   const { name } = bodySchema.parse(req.body);
@@ -38,7 +39,7 @@ categoryRoutes.put('/:id', ensureAuth, ensureAdmin , async (req, res) => {
   });
 
   const bodySchema = z.object({
-    name: z.string().min(2),
+    name: requiredText('Nome da categoria', 2),
   });
 
   const { id } = paramsSchema.parse(req.params);

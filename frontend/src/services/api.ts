@@ -82,9 +82,10 @@ export function resetPassword(payload: { token: string; password: string }) {
 }
 
 export function createSuggestion(payload: SuggestionPayload) {
-  return request('/suggestions', {
+  return request<Suggestion>('/suggestions', {
     method: 'POST',
     body: payload,
+    auth: true,
   });
 }
 

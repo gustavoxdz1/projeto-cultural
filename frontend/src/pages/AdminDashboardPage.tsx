@@ -70,6 +70,12 @@ export function AdminDashboardPage() {
   }
 
   const token = session.token;
+  const adminInitials = session.user.name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((chunk) => chunk[0]?.toUpperCase() ?? '')
+    .join('');
 
   const pendingSuggestions = suggestions.filter((item) => item.status === 'PENDING');
 
@@ -214,23 +220,66 @@ export function AdminDashboardPage() {
     <section className="admin-dashboard-page">
       <article className="admin-dashboard-surface">
         <header className="admin-dashboard-header">
-          <div className="admin-dashboard-hero">
-            <div className="portal-brand">
-              <span className="portal-brand-mark admin" />
+          <div className="admin-dashboard-topbar">
+            <div className="admin-dashboard-brand">
+              <img
+                alt="SpotTech"
+                className="admin-dashboard-logo"
+                src="/images/branding/spottech-logo.png"
+              />
               <div>
+                <span className="eyebrow light">Painel administrativo</span>
                 <strong>SpotTech Admin</strong>
-                <p>Visão geral da plataforma e das operações de curadoria</p>
+                <p>Curadoria, revisão e gestão da base oficial de locais.</p>
               </div>
             </div>
 
+            <div className="admin-dashboard-user-card">
+              <div className="admin-dashboard-user-copy">
+                <span>Operador ativo</span>
+                <strong>{session.user.name}</strong>
+                <small>{session.user.email}</small>
+              </div>
+              <div className="admin-dashboard-avatar" aria-hidden="true">
+                {adminInitials}
+              </div>
+            </div>
+          </div>
+
+          <div className="admin-dashboard-hero">
             <div className="admin-dashboard-copy">
-              <span className="eyebrow light">Overview</span>
-              <h1>Controle sugestões, edições e organização da base em um único painel.</h1>
+              <span className="eyebrow light">Visão geral</span>
+              <h1>Coordene sugestões, categorias e locais em um fluxo mais claro e controlado.</h1>
               <p>
-                A área administrativa foi desenhada para centralizar decisões operacionais, manter
-                a qualidade do conteúdo e permitir evolução contínua do catálogo publicado.
+                Use este painel para revisar contribuições da comunidade, manter o catálogo consistente
+                e publicar atualizações com mais segurança operacional.
               </p>
             </div>
+
+            <aside className="admin-dashboard-summary-card">
+              <div className="admin-dashboard-badge-row">
+                <span className="admin-dashboard-badge">Acesso administrativo</span>
+                <span className="admin-dashboard-badge muted">
+                  {pendingSuggestions.length} pendente{pendingSuggestions.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              <p className="admin-dashboard-summary-text">
+                A sessão atual está preparada para aprovar sugestões, organizar categorias e atualizar
+                locais já publicados sem perder visibilidade do que exige atenção imediata.
+              </p>
+
+              <div className="admin-dashboard-summary-metrics">
+                <div>
+                  <span>Itens publicados</span>
+                  <strong>{places.length}</strong>
+                </div>
+                <div>
+                  <span>Equipe ativa</span>
+                  <strong>1 admin</strong>
+                </div>
+              </div>
+            </aside>
           </div>
         </header>
 

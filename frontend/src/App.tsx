@@ -71,13 +71,7 @@ export function App() {
         <Routes>
           <Route
             path="/"
-            element={
-              user ? (
-                <Navigate replace to={user.role === 'ADMIN' ? '/admin' : '/portal'} />
-              ) : (
-                <LandingPage />
-              )
-            }
+            element={<LandingPage />}
           />
           <Route path="/login" element={<LoginPage onAuth={handleAuth} />} />
           <Route path="/cadastro" element={<SignupPage onAuth={handleAuth} />} />

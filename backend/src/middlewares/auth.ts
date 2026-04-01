@@ -21,7 +21,13 @@ export function ensureAuth(req: AuthRequest, res: Response, next: NextFunction) 
     return res.status(401).json({ message: 'Token não informado.' });
   }
 
-  const [, token] = authHeader.split(' ');
+  const [scheme, token] = authHeader.split(' ');
+
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({
+      message: 'Formato de autorização inválido. Use Bearer token.',
+    });
+  }
 
   try {
     const decoded = jwt.verify(token, env.jwtSecret) as JwtPayload;

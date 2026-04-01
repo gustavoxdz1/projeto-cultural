@@ -6,14 +6,15 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { env } from '../config/env';
 import { enviarEmailBoasVindas, enviarEamailRecuperacaoSenha } from '../services/enviarEmails';
+import { emailField, passwordField, requiredText } from '../utils/validation';
 
 export const authRoutes = Router();
 
 authRoutes.post('/cadastro', async (req, res) => {
   const bodySchema = z.object({
-    name: z.string().min(2),
-    email: z.string().email(),
-    password: z.string().min(6),
+    name: requiredText('Nome', 2),
+    email: emailField,
+    password: passwordField,
     receiveUpdates: z.boolean().optional(),
   });
 
@@ -38,7 +39,8 @@ authRoutes.post('/cadastro', async (req, res) => {
       receiveUpdates: receiveUpdates ?? false,
     },
   });
-  try{
+
+  try {
     await enviarEmailBoasVindas(user.name, user.email);
   } catch (error) {
     console.error('Erro ao enviar e-mail de boas-vindas:', error);
@@ -58,8 +60,8 @@ authRoutes.post('/cadastro', async (req, res) => {
 
 authRoutes.post('/login', async (req, res) => {
   const bodySchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
+    email: emailField,
+    password: passwordField,
   });
 
   const { email, password } = bodySchema.parse(req.body);
@@ -98,7 +100,7 @@ authRoutes.post('/login', async (req, res) => {
 
 authRoutes.post('/esqueci-senha', async (req, res) => {
   const bodySchema = z.object({
-    email: z.string().email(),
+    email: emailField,
   });
 
   const { email } = bodySchema.parse(req.body);
@@ -141,13 +143,14 @@ authRoutes.post('/esqueci-senha', async (req, res) => {
   }
 
   return res.json({
-  message: 'Se o e-mail existir, enviaremos as instruções de recuperação.',
-});});
+    message: 'Se o e-mail existir, enviaremos as instruções de recuperação.',
+  });
+});
 
 authRoutes.post('/redefinir-senha', async (req, res) => {
   const bodySchema = z.object({
-    token: z.string().min(10),
-    password: z.string().min(6),
+    token: requiredText('Token', 10),
+    password: passwordField,
   });
 
   const { token, password } = bodySchema.parse(req.body);

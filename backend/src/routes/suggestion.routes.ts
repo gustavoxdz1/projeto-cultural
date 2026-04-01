@@ -1,27 +1,32 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
-import { ensureAuth } from '../middlewares/auth';
+import { ensureAuth, type AuthRequest } from '../middlewares/auth';
 import { ensureAdmin } from '../middlewares/ensureAdmin';
 import { slugify } from '../utils/slug';
+import { optionalText, optionalUrl, requiredText } from '../utils/validation';
+
 
 export const suggestionRoutes = Router();
 
-suggestionRoutes.post('/', async (req, res) => {
+suggestionRoutes.post('/', ensureAuth, async (req: AuthRequest, res) => {
   const bodySchema = z.object({
-    name: z.string().min(2),
-    description: z.string().optional(),
-    address: z.string().min(5),
-    neighborhood: z.string().min(2),
+    name: requiredText('Nome da sugestão', 2),
+    description: optionalText,
+    address: requiredText('Endereço', 5),
+    neighborhood: requiredText('Bairro', 2),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    categoryName: z.string().min(2),
+    categoryName: requiredText('Categoria', 2),
   });
 
   const data = bodySchema.parse(req.body);
 
   const suggestion = await prisma.suggestion.create({
-    data,
+    data: {
+      ...data,
+      userId: req.user!.id,
+    },
   });
 
   return res.status(201).json(suggestion);
@@ -44,7 +49,7 @@ suggestionRoutes.patch('/admin/:id/status', ensureAuth, ensureAdmin, async (req,
     status: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    imageUrl: z.string().url().optional().or(z.literal('')),
+    imageUrl: optionalUrl('URL da imagem'),
     categoryId: z.string().uuid().optional(),
   });
 

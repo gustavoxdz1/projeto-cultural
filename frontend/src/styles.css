@@ -642,9 +642,14 @@ button {
 }
 
 .portal-surface,
-.detail-surface,
-.admin-dashboard-surface {
+.detail-surface {
   background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.admin-dashboard-surface {
+  background: #f3f5f2;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -1318,11 +1323,99 @@ button {
   color: #101010;
 }
 
+.admin-dashboard-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.admin-dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-dashboard-logo {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.admin-dashboard-brand strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.admin-dashboard-brand p {
+  margin: 4px 0 0;
+  color: rgba(16, 16, 16, 0.78);
+  font-size: 0.9rem;
+}
+
+.admin-dashboard-user-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.admin-dashboard-user-copy {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.admin-dashboard-user-copy span,
+.admin-dashboard-summary-metrics span {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(16, 16, 16, 0.58);
+}
+
+.admin-dashboard-user-copy strong {
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.admin-dashboard-user-copy small {
+  color: rgba(16, 16, 16, 0.72);
+  font-size: 0.82rem;
+}
+
+.admin-dashboard-avatar {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(16, 16, 16, 0.94) 0%, rgba(58, 128, 176, 0.92) 100%);
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  box-shadow: 0 12px 28px rgba(16, 16, 16, 0.18);
+}
+
 .admin-dashboard-hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
   gap: 22px;
-  align-items: end;
+  align-items: stretch;
 }
 
 .admin-dashboard-copy h1 {
@@ -1337,6 +1430,67 @@ button {
   color: #101010;
 }
 
+.admin-dashboard-summary-card {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.admin-dashboard-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-dashboard-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(16, 16, 16, 0.08);
+  color: #101010;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-dashboard-badge.muted {
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.admin-dashboard-summary-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: rgba(16, 16, 16, 0.82);
+}
+
+.admin-dashboard-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-dashboard-summary-metrics div {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.admin-dashboard-summary-metrics strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
 .admin-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1349,6 +1503,9 @@ button {
   padding: 14px 16px;
   border-radius: 6px;
   color: #101010;
+  background: #75c12d;
+  box-shadow: none;
+  border: 1px solid rgba(16, 16, 16, 0.08);
 }
 
 .admin-stat-card span {
@@ -1361,20 +1518,50 @@ button {
   font-size: 2rem;
 }
 
+.admin-dashboard-surface .portal-primary-button,
+.admin-dashboard-surface .admin-edit-button,
+.admin-dashboard-surface .admin-inline-button {
+  border: 1px solid rgba(16, 16, 16, 0.08);
+  background: #75c12d;
+  color: #101010;
+  box-shadow: none;
+}
+
+.admin-dashboard-surface .ghost-button {
+  border: 1px solid rgba(16, 16, 16, 0.08);
+  background: #75c12d;
+  color: #101010;
+  box-shadow: none;
+}
+
+.admin-dashboard-surface .action-button {
+  box-shadow: none;
+}
+
+.admin-dashboard-surface .action-button.approve {
+  background: #75c12d;
+  color: #101010;
+}
+
+.admin-dashboard-surface .action-button.reject {
+  background: #b95a52;
+  color: #ffffff;
+}
+
 .admin-stat-card.cyan {
-  background: linear-gradient(90deg, var(--sky), color-mix(in srgb, var(--accent) 64%, white));
+  background: #75c12d;
 }
 
 .admin-stat-card.orange {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--panel) 64%, var(--sky)), color-mix(in srgb, var(--accent) 52%, white));
+  background: #75c12d;
 }
 
 .admin-stat-card.purple {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 52%, white), var(--accent));
+  background: #75c12d;
 }
 
 .admin-stat-card.green {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--panel) 52%, var(--success)), var(--success));
+  background: #75c12d;
 }
 
 .dashboard-feedback {
@@ -2104,6 +2291,20 @@ button {
     align-items: start;
   }
 
+  .admin-dashboard-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-dashboard-user-card {
+    justify-content: space-between;
+  }
+
+  .admin-dashboard-user-copy {
+    justify-items: start;
+    text-align: left;
+  }
+
   .nav {
     width: 100%;
     gap: 10px;
@@ -2142,6 +2343,22 @@ button {
 
   .portal-menu {
     flex-wrap: wrap;
+  }
+
+  .admin-dashboard-header {
+    padding: 24px 20px;
+  }
+
+  .admin-dashboard-brand {
+    align-items: flex-start;
+  }
+
+  .admin-dashboard-summary-card {
+    padding: 18px;
+  }
+
+  .admin-dashboard-summary-metrics {
+    grid-template-columns: 1fr;
   }
 
   .admin-panel-heading,

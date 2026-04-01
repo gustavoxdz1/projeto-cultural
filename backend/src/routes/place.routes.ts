@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { ensureAuth } from '../middlewares/auth';
 import { ensureAdmin } from '../middlewares/ensureAdmin';
+import { optionalUrl, requiredText } from '../utils/validation';
 
 export const placeRoutes = Router();
 
@@ -79,13 +80,13 @@ placeRoutes.get('/:id', async (req, res) => {
 
 placeRoutes.post('/', ensureAuth, ensureAdmin, async (req, res) => {
   const bodySchema = z.object({
-    name: z.string().min(2),
-    description: z.string().min(5),
-    address: z.string().min(5),
-    neighborhood: z.string().min(2),
+    name: requiredText('Nome do local', 2),
+    description: requiredText('Descrição', 5),
+    address: requiredText('Endereço', 5),
+    neighborhood: requiredText('Bairro', 2),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    imageUrl: z.string().url().optional().or(z.literal('')),
+    imageUrl: optionalUrl('URL da imagem'),
     categoryId: z.string().uuid(),
   });
 
@@ -109,13 +110,13 @@ placeRoutes.put('/:id', ensureAuth, ensureAdmin, async (req, res) => {
   });
 
   const bodySchema = z.object({
-    name: z.string().min(2),
-    description: z.string().min(5),
-    address: z.string().min(5),
-    neighborhood: z.string().min(2),
+    name: requiredText('Nome do local', 2),
+    description: requiredText('Descrição', 5),
+    address: requiredText('Endereço', 5),
+    neighborhood: requiredText('Bairro', 2),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
-    imageUrl: z.string().url().optional().or(z.literal('')),
+    imageUrl: optionalUrl('URL da imagem'),
     categoryId: z.string().uuid(),
   });
 
