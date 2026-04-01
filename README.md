@@ -2,48 +2,50 @@
 
 Plataforma web para descoberta, curadoria e gestão de locais turísticos e culturais de Manaus.
 
-O projeto foi construído como um MVP full stack com:
-- backend em Node.js + Express + Prisma + PostgreSQL
-- frontend em React + Vite + TypeScript
-- autenticação com JWT
+O projeto foi desenvolvido como um MVP full stack com:
+- backend em **Node.js + Express + TypeScript + Prisma + PostgreSQL**
+- frontend em **React + Vite + TypeScript**
+- autenticação com **JWT**
 - área pública institucional
 - área autenticada para usuários
-- painel administrativo para gestão de locais, categorias e sugestões
+- painel administrativo para gestão de categorias, locais e sugestões
 
-## Visão Geral
+## Visão geral
 
-O SpotTech foi pensado para organizar informações sobre pontos turísticos e locais relevantes da cidade de Manaus em uma experiência digital clara, moderna e fácil de administrar.
+O SpotTech foi pensado para centralizar informações sobre pontos turísticos e culturais de Manaus em uma experiência digital simples, moderna e fácil de administrar.
 
-Hoje o sistema já permite:
+Atualmente o sistema permite:
 - cadastro e login de usuários
 - recuperação de senha por token
 - visualização de locais com busca e filtros
-- sugestão de novos locais por usuários autenticados
-- painel administrativo para aprovar sugestões
-- cadastro e edição de locais
-- cadastro de categorias
+- sugestão de novos locais
+- painel administrativo para aprovar ou rejeitar sugestões
+- cadastro, edição e inativação de locais
+- cadastro, edição e exclusão de categorias
 - catálogo inicial com locais reais de Manaus
 
 ## Funcionalidades
 
 ### Visitante
-- landing page institucional
-- acesso a login, cadastro e área administrativa
+- acessar a landing page institucional
+- acessar cadastro, login de usuário e login administrativo
+- visualizar locais e detalhes dos locais
+- usar busca e filtros por categoria e bairro
+- enviar sugestão de local
 
 ### Usuário autenticado
-- acesso ao portal principal
-- consulta de locais cadastrados
-- visualização detalhada de cada local
-- link de rota para Google Maps e Waze
-- envio de sugestões
-- atualização de preferências do perfil
+- acessar o portal principal
+- consultar locais cadastrados
+- visualizar detalhes de cada local
+- abrir rota no Google Maps e Waze
+- atualizar preferências do perfil
 
 ### Administrador
 - login administrativo
-- painel com visão geral
-- aprovação e rejeição de sugestões
-- criação de categorias
-- criação e edição de locais
+- painel com visão geral de sugestões, categorias e locais
+- aprovar ou rejeitar sugestões
+- criar, editar e inativar locais
+- criar, editar e excluir categorias
 - criação automática de local ao aprovar sugestão
 
 ## Stack
@@ -57,20 +59,22 @@ Hoje o sistema já permite:
 - Zod
 - JWT
 - Resend
+- bcrypt
 
 ### Frontend
 - React
 - Vite
 - TypeScript
-- React Router
+- React Router DOM
 
-## Estrutura do Projeto
+## Estrutura do projeto
 
 ```text
 .
 ├── backend
 │   ├── prisma
 │   │   ├── migrations
+│   │   ├── schema.prisma
 │   │   └── seed.ts
 │   ├── src
 │   │   ├── config
@@ -78,7 +82,9 @@ Hoje o sistema já permite:
 │   │   ├── middlewares
 │   │   ├── routes
 │   │   ├── services
-│   │   └── utils
+│   │   ├── utils
+│   │   ├── app.ts
+│   │   └── server.ts
 │   └── package.json
 ├── frontend
 │   ├── public
@@ -87,8 +93,12 @@ Hoje o sistema já permite:
 │   │   ├── components
 │   │   ├── pages
 │   │   ├── services
-│   │   └── types
+│   │   ├── types
+│   │   ├── App.tsx
+│   │   └── main.tsx
 │   └── package.json
+├── jest.config.ts
+├── package.json
 └── README.md
 ```
 
@@ -99,15 +109,15 @@ Antes de rodar o projeto, tenha instalado:
 - npm
 - PostgreSQL
 
-Se você estiver usando Docker para o banco:
+Se estiver usando Docker para o banco, um exemplo de inicialização seria:
 
 ```bash
 docker start portal-cultural-db
 ```
 
-## Configuração do Backend
+## Configuração do backend
 
-Entre na pasta:
+Entre na pasta do backend:
 
 ```bash
 cd backend
@@ -148,7 +158,7 @@ Popule o banco com os dados iniciais:
 npm run prisma:seed
 ```
 
-Inicie o backend:
+Inicie o backend em modo de desenvolvimento:
 
 ```bash
 npm run dev
@@ -166,9 +176,17 @@ Health check:
 GET /health
 ```
 
-## Configuração do Frontend
+Resposta esperada:
 
-Entre na pasta:
+```json
+{
+  "ok": "Server is running"
+}
+```
+
+## Configuração do frontend
+
+Entre na pasta do frontend:
 
 ```bash
 cd frontend
@@ -180,7 +198,7 @@ Instale as dependências:
 npm install
 ```
 
-Se quiser configurar a URL da API manualmente, crie um `.env`:
+Crie um arquivo `.env` para apontar a API:
 
 ```env
 VITE_API_URL=http://localhost:3333
@@ -198,18 +216,17 @@ O frontend ficará disponível em:
 http://localhost:5173
 ```
 
-## Credenciais Iniciais
+## Credenciais iniciais
 
 O seed cria uma conta administrativa padrão:
-
 - e-mail: `admin@portal.com`
 - senha: `123456`
 
 Usuários comuns podem ser criados pela tela de cadastro.
 
-## Dados Iniciais do Catálogo
+## Dados iniciais do catálogo
 
-O seed atual já inclui locais reais de Manaus, como:
+O seed atual inclui locais reais de Manaus, como:
 - Teatro Amazonas
 - Largo de São Sebastião
 - Mercado Municipal Adolpho Lisboa
@@ -219,7 +236,15 @@ O seed atual já inclui locais reais de Manaus, como:
 - Ponta Negra
 - Museu da Amazônia (MUSA)
 
-## Scripts Disponíveis
+## Scripts disponíveis
+
+### Raiz do projeto
+
+```bash
+npm test
+```
+
+> Observação: existe `jest.config.ts` na raiz, mas o projeto ainda não possui uma suíte de testes automatizados consolidada.
 
 ### Backend
 
@@ -241,7 +266,10 @@ npm run build
 npm run preview
 ```
 
-## Rotas Principais da API
+## Rotas principais da API
+
+### Health
+- `GET /health`
 
 ### Autenticação
 - `POST /auth/cadastro`
@@ -256,19 +284,62 @@ npm run preview
 ### Categorias
 - `GET /categories`
 - `POST /categories`
+- `PUT /categories/:id`
+- `DELETE /categories/:id`
 
 ### Locais
 - `GET /places`
 - `GET /places/:id`
 - `POST /places`
 - `PUT /places/:id`
+- `DELETE /places/:id`
 
 ### Sugestões
 - `POST /suggestions`
 - `GET /suggestions/admin`
 - `PATCH /suggestions/admin/:id/status`
 
-## Imagens no Frontend
+## Regras de acesso
+
+### Rotas públicas
+- `GET /health`
+- `POST /auth/cadastro`
+- `POST /auth/login`
+- `POST /auth/esqueci-senha`
+- `POST /auth/redefinir-senha`
+- `GET /categories`
+- `GET /places`
+- `GET /places/:id`
+- `POST /suggestions`
+
+### Rotas autenticadas
+- `GET /perfil/me`
+- `PATCH /perfil/me/preferencias`
+
+### Rotas administrativas
+- `POST /categories`
+- `PUT /categories/:id`
+- `DELETE /categories/:id`
+- `POST /places`
+- `PUT /places/:id`
+- `DELETE /places/:id`
+- `GET /suggestions/admin`
+- `PATCH /suggestions/admin/:id/status`
+
+## Filtros disponíveis em `GET /places`
+
+A listagem de locais aceita os seguintes parâmetros opcionais:
+- `search`
+- `category`
+- `neighborhood`
+
+Exemplo:
+
+```text
+GET /places?search=teatro&category=teatro&neighborhood=centro
+```
+
+## Imagens no frontend
 
 As imagens locais do frontend podem ser adicionadas em:
 
@@ -282,28 +353,31 @@ Exemplo:
 frontend/public/images/places/teatro-amazonas.jpg
 ```
 
-Depois basta usar no sistema algo como:
+Depois elas podem ser usadas no sistema com caminhos como:
 
 ```text
 /images/places/teatro-amazonas.jpg
 ```
 
-## Estado Atual do Projeto
+## Estado atual do projeto
 
-O projeto já está funcional como MVP, com backend integrado ao frontend e fluxo administrativo básico implementado.
+O projeto está funcional como MVP, com backend integrado ao frontend e fluxo administrativo básico implementado.
 
-Alguns pontos que ainda podem evoluir:
+Pontos que ainda podem evoluir:
 - testes automatizados
+- proteção e padronização mais forte de algumas regras de negócio
 - upload real de imagens
 - favoritos e histórico do usuário
 - métricas administrativas mais completas
 - área pública com conteúdo dinâmico vindo do backend
+- pipeline de CI/CD
 
 ## Observações
 
-- o seed atual recria os locais e limpa sugestões antes de popular a base
+- o seed recria os locais e limpa sugestões antes de popular a base
 - o envio de e-mail depende da configuração do Resend
-- as imagens da landing e da identidade visual estão em `frontend/public/images`
+- as imagens da landing e da identidade visual ficam em `frontend/public/images`
+- a rota `POST /suggestions` está pública no estado atual do código; se você aplicar a melhoria de autenticação para sugestões, atualize esta seção do README
 
 ## Autor
 
