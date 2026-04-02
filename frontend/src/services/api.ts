@@ -3,7 +3,6 @@ import type {
   Category,
   Place,
   Profile,
-  SignupResponse,
   Suggestion,
   SuggestionPayload,
   SuggestionStatusResponse,
@@ -51,24 +50,14 @@ export async function signup(payload: {
   password: string;
   receiveUpdates: boolean;
 }) {
-  const response = await request<SignupResponse>('/auth/cadastro', {
+  return request<AuthResponse>('/auth/cadastro', {
     method: 'POST',
     body: payload,
   });
-
-  const auth = await login({
-    email: payload.email,
-    password: payload.password,
-  });
-
-  return {
-    response,
-    auth,
-  };
 }
 
 export function forgotPassword(payload: { email: string }) {
-  return request<{ message: string }>('/auth/esqueci-senha', {
+  return request<{ message: string; resetUrl?: string; delivery: 'email' | 'preview' }>('/auth/esqueci-senha', {
     method: 'POST',
     body: payload,
   });
@@ -119,6 +108,13 @@ export function createCategory(token: string, payload: { name: string }) {
   });
 }
 
+export function deleteCategory(token: string, id: string) {
+  return request<null>(`/categories/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
 export function createPlace(
   token: string,
   payload: {
@@ -157,6 +153,13 @@ export function updatePlace(
     method: 'PUT',
     token,
     body: payload,
+  });
+}
+
+export function deletePlace(token: string, id: string) {
+  return request<null>(`/places/${id}`, {
+    method: 'DELETE',
+    token,
   });
 }
 

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { useAuth } from './contexts/AuthContext';
 import { HomePage } from './pages/HomePage';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
@@ -10,11 +11,10 @@ import { PlaceDetailsPage } from './pages/PlaceDetailsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
-import { getStoredSession, clearSession, type SessionUser } from './services/session';
 
 export function App() {
   const location = useLocation();
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const { user, logout } = useAuth();
   const hideGlobalHeader =
     location.pathname === '/' ||
     location.pathname.startsWith('/admin') ||
@@ -22,20 +22,6 @@ export function App() {
     location.pathname === '/cadastro' ||
     location.pathname === '/esqueci-senha' ||
     location.pathname === '/recuperar-senha';
-
-  useEffect(() => {
-    const session = getStoredSession();
-    setUser(session?.user ?? null);
-  }, []);
-
-  function handleAuth(userData: SessionUser) {
-    setUser(userData);
-  }
-
-  function handleLogout() {
-    clearSession();
-    setUser(null);
-  }
 
   return (
     <div className="shell">
@@ -59,7 +45,7 @@ export function App() {
             <Link to="/perfil">Meu perfil</Link>
             {user?.role === 'ADMIN' ? <Link to="/admin">Admin</Link> : null}
             {user ? (
-              <button className="ghost-button" onClick={handleLogout} type="button">
+              <button className="ghost-button" onClick={logout} type="button">
                 Sair
               </button>
             ) : null}
@@ -73,18 +59,50 @@ export function App() {
             path="/"
             element={<LandingPage />}
           />
-          <Route path="/login" element={<LoginPage onAuth={handleAuth} />} />
-          <Route path="/cadastro" element={<SignupPage onAuth={handleAuth} />} />
+          <Route path="/login" element={user ? <Navigate replace to="/perfil" /> : <LoginPage />} />
+          <Route path="/cadastro" element={user ? <Navigate replace to="/perfil" /> : <SignupPage />} />
           <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
           <Route path="/recuperar-senha" element={<ResetPasswordPage />} />
-          <Route path="/portal" element={user ? <HomePage /> : <Navigate replace to="/" />} />
-          <Route path="/sugerir" element={user ? <SuggestionPage /> : <Navigate replace to="/" />} />
-          <Route path="/locais/:id" element={user ? <PlaceDetailsPage /> : <Navigate replace to="/" />} />
-          <Route path="/admin/login" element={<LoginPage onAuth={handleAuth} />} />
-          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route
+            path="/portal"
+            element={
+              <ProtectedRoute redirectTo="/login">
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sugerir"
+            element={
+              <ProtectedRoute redirectTo="/login">
+                <SuggestionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/locais/:id"
+            element={
+              <ProtectedRoute redirectTo="/login">
+                <PlaceDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/admin/login" element={user?.role === 'ADMIN' ? <Navigate replace to="/admin" /> : <LoginPage />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly redirectTo="/admin/login">
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/perfil"
-            element={user ? <ProfilePage user={user} onAuth={handleAuth} /> : <Navigate replace to="/" />}
+            element={
+              <ProtectedRoute redirectTo="/login">
+                <ProfilePage />
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </main>

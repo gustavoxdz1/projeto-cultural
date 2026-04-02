@@ -1,14 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { signup } from '../services/api';
-import { saveSession, type SessionUser } from '../services/session';
 
-type SignupPageProps = {
-  onAuth: (user: SessionUser) => void;
-};
-
-export function SignupPage({ onAuth }: SignupPageProps) {
+export function SignupPage() {
   const navigate = useNavigate();
+  const { setAuthSession } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,15 +19,14 @@ export function SignupPage({ onAuth }: SignupPageProps) {
     setError(null);
 
     try {
-      const { auth } = await signup({
+      const auth = await signup({
         name,
         email,
         password,
         receiveUpdates,
       });
 
-      saveSession(auth);
-      onAuth(auth.user);
+      setAuthSession(auth);
       navigate('/perfil');
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Não foi possível criar a conta.');

@@ -10,6 +10,37 @@ import { emailField, passwordField, requiredText } from '../utils/validation';
 
 export const authRoutes = Router();
 
+function getAuthUser(user: { id: string; name: string; email: string; role: 'ADMIN' | 'USER'; receiveUpdates: boolean }) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    receiveUpdates: user.receiveUpdates,
+  };
+}
+
+function getAuthResponse(user: { id: string; name: string; email: string; role: 'ADMIN' | 'USER'; receiveUpdates: boolean }) {
+  const token = jwt.sign(
+    { role: user.role },
+    env.jwtSecret,
+    { subject: user.id, expiresIn: '1d' }
+  );
+
+  return {
+    token,
+    user: getAuthUser(user),
+  };
+}
+
+function getPasswordResetResponse(token: string) {
+  return {
+    message: 'Link de recuperação gerado para uso local.',
+    resetUrl: `${env.frontendUrl}/recuperar-senha?token=${token}`,
+    delivery: 'preview' as const,
+  };
+}
+
 authRoutes.post('/cadastro', async (req, res) => {
   const bodySchema = z.object({
     name: requiredText('Nome', 2),
@@ -47,14 +78,8 @@ authRoutes.post('/cadastro', async (req, res) => {
   }
 
   return res.status(201).json({
+    ...getAuthResponse(user),
     message: 'Usuário cadastrado com sucesso.',
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      receiveUpdates: user.receiveUpdates,
-    },
   });
 });
 
@@ -80,22 +105,7 @@ authRoutes.post('/login', async (req, res) => {
     return res.status(401).json({ message: 'Credenciais inválidas.' });
   }
 
-  const token = jwt.sign(
-    { role: user.role },
-    env.jwtSecret,
-    { subject: user.id, expiresIn: '1d' }
-  );
-
-  return res.json({
-    token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      receiveUpdates: user.receiveUpdates,
-    },
-  });
+  return res.json(getAuthResponse(user));
 });
 
 authRoutes.post('/esqueci-senha', async (req, res) => {
@@ -112,6 +122,7 @@ authRoutes.post('/esqueci-senha', async (req, res) => {
   if (!user) {
     return res.json({
       message: 'Se o e-mail existir, enviaremos as instruções de recuperação.',
+      delivery: 'email',
     });
   }
 
@@ -135,6 +146,10 @@ authRoutes.post('/esqueci-senha', async (req, res) => {
   } catch (error) {
     console.error('Erro ao enviar e-mail de recuperação de senha:', error);
 
+    if (!env.isProduction) {
+      return res.json(getPasswordResetResponse(token));
+    }
+
     await prisma.passwordResetToken.deleteMany({
       where: { userId: user.id },
     });
@@ -144,6 +159,7 @@ authRoutes.post('/esqueci-senha', async (req, res) => {
 
   return res.json({
     message: 'Se o e-mail existir, enviaremos as instruções de recuperação.',
+    delivery: 'email',
   });
 });
 

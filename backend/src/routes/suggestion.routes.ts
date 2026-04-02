@@ -6,7 +6,6 @@ import { ensureAdmin } from '../middlewares/ensureAdmin';
 import { slugify } from '../utils/slug';
 import { optionalText, optionalUrl, requiredText } from '../utils/validation';
 
-
 export const suggestionRoutes = Router();
 
 suggestionRoutes.post('/', ensureAuth, async (req: AuthRequest, res) => {
@@ -64,6 +63,10 @@ suggestionRoutes.patch('/admin/:id/status', ensureAuth, ensureAdmin, async (req,
     return res.status(404).json({ message: 'Sugestão não encontrada.' });
   }
 
+  if (status === 'APPROVED' && suggestion.status === 'APPROVED') {
+    return res.status(409).json({ message: 'Esta sugestão já foi aprovada.' });
+  }
+
   if (status !== 'APPROVED') {
     const updatedSuggestion = await prisma.suggestion.update({
       where: { id },
@@ -99,7 +102,7 @@ suggestionRoutes.patch('/admin/:id/status', ensureAuth, ensureAdmin, async (req,
         name: suggestion.name,
         description:
           suggestion.description?.trim() ||
-          `Local sugerido pela comunidade para o Portal Cultural.`,
+          'Local sugerido pela comunidade para a SpotTech.',
         address: suggestion.address,
         neighborhood: suggestion.neighborhood,
         imageUrl: imageUrl || null,

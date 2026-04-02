@@ -1,19 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { getProfile, updatePreferences } from '../services/api';
-import { getStoredSession, saveSession, type SessionUser } from '../services/session';
 import type { Profile } from '../types/api';
+import { getUserInitials } from '../utils/user';
 
-type ProfilePageProps = {
-  user: SessionUser;
-  onAuth: (user: SessionUser) => void;
-};
-
-export function ProfilePage({ user, onAuth }: ProfilePageProps) {
+export function ProfilePage() {
+  const { session, user, updateAuthUser } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const userName = user?.name ?? '';
 
   const joinedDate = useMemo(() => {
     if (!profile) {
@@ -45,18 +43,11 @@ export function ProfilePage({ user, onAuth }: ProfilePageProps) {
   }, [profile]);
 
   const userInitials = useMemo(() => {
-    return user.name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((chunk) => chunk[0]?.toUpperCase() ?? '')
-      .join('');
-  }, [user.name]);
+    return getUserInitials(userName);
+  }, [userName]);
 
   useEffect(() => {
-    const session = getStoredSession();
-
-    if (!session) {
+    if (!session?.token) {
       setLoading(false);
       return;
     }
@@ -65,12 +56,10 @@ export function ProfilePage({ user, onAuth }: ProfilePageProps) {
       .then(setProfile)
       .catch(() => setError('Não foi possível carregar seu perfil.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [session?.token]);
 
   async function handleToggle(receiveUpdates: boolean) {
-    const session = getStoredSession();
-
-    if (!session) {
+    if (!session?.token || !user) {
       return;
     }
 
@@ -81,18 +70,17 @@ export function ProfilePage({ user, onAuth }: ProfilePageProps) {
       const updated = await updatePreferences(session.token, { receiveUpdates });
       const nextUser = { ...user, receiveUpdates: updated.receiveUpdates };
 
-      saveSession({
-        token: session.token,
-        user: nextUser,
-      });
-
       setProfile(updated);
-      onAuth(nextUser);
+      updateAuthUser(nextUser);
     } catch {
       setError('Não foi possível atualizar sua preferência agora.');
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (

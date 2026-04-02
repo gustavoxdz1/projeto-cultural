@@ -3,11 +3,6 @@ import { Link, useParams } from 'react-router-dom';
 import { getPlaceById } from '../services/api';
 import type { Place } from '../types/api';
 
-const mockEvents = [
-  { title: 'Show Musical', date: '3 Junho 2026', tag: 'Entretenimento' },
-  { title: 'Jogo de Futebol', date: '4 Junho 2026', tag: 'Esportivo' },
-];
-
 export function PlaceDetailsPage() {
   const { id = '' } = useParams();
   const [place, setPlace] = useState<Place | null>(null);
@@ -39,10 +34,12 @@ export function PlaceDetailsPage() {
     );
   }
 
-  const gallery = [place.imageUrl, place.imageUrl, place.imageUrl].filter(Boolean) as string[];
   const encodedAddress = encodeURIComponent(`${place.name}, ${place.address}, ${place.neighborhood}`);
+  const mapEmbedUrl = `https://www.google.com/maps?q=${encodedAddress}&z=15&output=embed`;
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
   const wazeUrl = `https://www.waze.com/ul?q=${encodedAddress}&navigate=yes`;
+  const heroImage = place.imageUrl ?? '/images/landing/pordosol-em-ponta-negra.png';
+  const searchHint = `${place.name} ${place.neighborhood}`.trim();
 
   return (
     <section className="detail-page">
@@ -52,27 +49,35 @@ export function PlaceDetailsPage() {
           style={
             place.imageUrl
               ? {
-                  backgroundImage: `linear-gradient(180deg, rgba(8, 12, 22, 0.1), rgba(8, 12, 22, 0.78)), url(${place.imageUrl})`,
+                  backgroundImage: `linear-gradient(180deg, rgba(8, 12, 22, 0.08), rgba(8, 12, 22, 0.82)), url(${heroImage})`,
                 }
-              : undefined
+              : {
+                  backgroundImage: `linear-gradient(180deg, rgba(8, 12, 22, 0.12), rgba(8, 12, 22, 0.8)), url(${heroImage})`,
+                }
           }
         >
           <div className="detail-overlay">
-            <div className="portal-brand detail-brand">
-              <span className="portal-brand-mark" />
-              <div>
-                <strong>{place.name}</strong>
-                <p>{place.address}</p>
+            <div className="detail-brand">
+              <div className="detail-brand-row">
+                <img alt="SpotTech" className="detail-brand-logo" src="/images/branding/spottech-logo.png" />
+                <div className="detail-brand-copy">
+                  <span className="eyebrow light">Guia SpotTech</span>
+                  <strong>{place.name}</strong>
+                  <p>{place.address}</p>
+                </div>
+              </div>
+
+              <div className="detail-meta-row">
+                <span className="detail-meta-pill">{place.category.name}</span>
+                <span className="detail-meta-pill muted">{place.neighborhood}</span>
               </div>
             </div>
 
             <div className="detail-actions">
-              <Link className="icon-button" to="/">
-                ⟵
+              <Link className="detail-back-button" to="/portal">
+                <span aria-hidden="true">⟵</span>
+                Voltar ao catálogo
               </Link>
-              <button className="icon-button" type="button">
-                ☰
-              </button>
             </div>
           </div>
         </header>
@@ -80,68 +85,81 @@ export function PlaceDetailsPage() {
         <div className="detail-content">
           <section className="detail-copy">
             <div className="detail-block">
-              <h2>Descrição</h2>
+              <h2>Sobre o local</h2>
               <p>{place.description}</p>
+              <p>
+                Este guia reúne as informações mais úteis para você localizar o espaço com mais rapidez
+                e abrir sua rota diretamente no aplicativo que preferir.
+              </p>
             </div>
 
             <div className="detail-block">
-              <h2>Informações</h2>
-              <ul className="info-list">
-                <li>{place.address}</li>
-                <li>Bairro: {place.neighborhood}</li>
-                <li>Categoria: {place.category.name}</li>
-                {place.latitude != null && place.longitude != null ? (
-                  <li>
-                    Coordenadas: {place.latitude.toFixed(4)}, {place.longitude.toFixed(4)}
-                  </li>
-                ) : null}
-              </ul>
+              <h2>Informações para encontrar o local</h2>
+              <div className="detail-info-grid">
+                <article className="detail-info-card">
+                  <span>Endereço</span>
+                  <strong>{place.address}</strong>
+                  <p>Use este endereço como referência principal ao abrir sua rota.</p>
+                </article>
+                <article className="detail-info-card">
+                  <span>Bairro</span>
+                  <strong>{place.neighborhood}</strong>
+                  <p>Confirmar o bairro ajuda a evitar destinos com nomes parecidos em outras regiões.</p>
+                </article>
+                <article className="detail-info-card">
+                  <span>Categoria</span>
+                  <strong>{place.category.name}</strong>
+                  <p>Bom para validar se você está indo para o tipo de espaço certo antes da visita.</p>
+                </article>
+                <article className="detail-info-card">
+                  <span>Busca sugerida</span>
+                  <strong>{searchHint}</strong>
+                  <p>Se precisar compartilhar ou procurar de novo, use esse termo no app de mapas.</p>
+                </article>
+              </div>
               <div className="directions-actions">
                 <a className="primary-button" href={googleMapsUrl} rel="noreferrer" target="_blank">
                   Google Maps
                 </a>
-                <a className="landing-secondary-button" href={wazeUrl} rel="noreferrer" target="_blank">
+                <a className="primary-button" href={wazeUrl} rel="noreferrer" target="_blank">
                   Waze
                 </a>
               </div>
             </div>
 
-            <div className="detail-block">
-              <h2>Eventos</h2>
-              <div className="event-grid">
-                {mockEvents.map((event) => (
-                  <article className="event-card" key={event.title}>
-                    <div className="event-thumb" />
-                    <div>
-                      <strong>{event.title}</strong>
-                      <p>{event.date}</p>
-                      <span>{event.tag}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+            <div className="detail-block detail-visit-card">
+              <h2>Visitação</h2>
+              <p>
+                Antes de sair, abra a rota pelo Google Maps ou Waze, confirme o bairro e mantenha o nome
+                do local em mãos para facilitar a chegada e o compartilhamento com outras pessoas.
+              </p>
+              <p>
+                Se estiver vindo de outra região da cidade, vale usar o endereço completo como referência
+                principal e o nome do local como apoio na busca.
+              </p>
             </div>
           </section>
 
           <aside className="detail-side">
-            <div className="mini-map">
-              <span className="pin pin-a" />
-              <span className="pin pin-b" />
-              <span className="pin pin-c" />
-              <span className="pin pin-d" />
+            <div className="detail-map-frame">
+              <iframe
+                className="detail-map-embed"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src={mapEmbedUrl}
+                title={`Mapa de ${place.name}`}
+              />
             </div>
 
             <div className="detail-block">
-              <h2>Galeria de Fotos</h2>
-              <div className="gallery-grid">
-                {(gallery.length > 0 ? gallery : [null, null, null]).map((image, index) => (
-                  <div
-                    className="gallery-card"
-                    key={`${place.id}-${index}`}
-                    style={image ? { backgroundImage: `url(${image})` } : undefined}
-                  />
-                ))}
-              </div>
+              <h2>Imagem do local</h2>
+              {place.imageUrl ? (
+                <div className="detail-image-frame">
+                  <img alt={place.name} className="detail-image" src={place.imageUrl} />
+                </div>
+              ) : (
+                <p className="feedback">Este local ainda não possui imagem cadastrada.</p>
+              )}
             </div>
           </aside>
         </div>

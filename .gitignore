@@ -1,2 +1,12 @@
 .codex
 .DS_Store
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+backend/generated/
+backend/.prisma/

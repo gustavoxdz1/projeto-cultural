@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { login } from '../services/api';
-import { clearSession, saveSession, type SessionUser } from '../services/session';
 
-type LoginPageProps = {
-  onAuth: (user: SessionUser) => void;
-};
-
-export function LoginPage({ onAuth }: LoginPageProps) {
+export function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { setAuthSession } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -25,13 +22,11 @@ export function LoginPage({ onAuth }: LoginPageProps) {
       const response = await login({ email, password });
 
       if (isAdminLogin && response.user.role !== 'ADMIN') {
-        clearSession();
         setError('Esta conta não possui acesso administrativo.');
         return;
       }
 
-      saveSession(response);
-      onAuth(response.user);
+      setAuthSession(response);
       navigate(isAdminLogin ? '/admin' : '/perfil');
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Não foi possível entrar.');
@@ -77,11 +72,6 @@ export function LoginPage({ onAuth }: LoginPageProps) {
             <label>
               Senha
               <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-            </label>
-
-            <label className="remember-row">
-              <input type="checkbox" />
-              <span>Lembrar-me</span>
             </label>
 
             {error ? <p className="feedback error">{error}</p> : null}

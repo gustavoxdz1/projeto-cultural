@@ -4,7 +4,7 @@ const STORAGE_KEY = 'cultura-locais.session';
 
 export type SessionUser = User;
 
-type Session = {
+export type Session = {
   token: string;
   user: User;
 };

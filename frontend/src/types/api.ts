@@ -44,11 +44,6 @@ export type AuthResponse = {
   user: User;
 };
 
-export type SignupResponse = {
-  message: string;
-  user: User;
-};
-
 export type Profile = User & {
   createdAt: string;
 };

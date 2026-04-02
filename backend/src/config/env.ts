@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3333),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required.'),
   JWT_SECRET: z.string().min(1, 'JWT_SECRET is required.'),
@@ -13,6 +14,8 @@ const envSchema = z.object({
 const parsedEnv = envSchema.parse(process.env);
 
 export const env = {
+  nodeEnv: parsedEnv.NODE_ENV,
+  isProduction: parsedEnv.NODE_ENV === 'production',
   port: parsedEnv.PORT,
   databaseUrl: parsedEnv.DATABASE_URL,
   jwtSecret: parsedEnv.JWT_SECRET,

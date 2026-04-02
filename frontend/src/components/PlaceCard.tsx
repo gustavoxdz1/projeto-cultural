@@ -23,7 +23,10 @@ export function PlaceCard({ place }: PlaceCardProps) {
 
       <div className="place-body">
         <div className="place-heading">
-          <h3>{place.name}</h3>
+          <h3 className="place-name-row">
+            <img alt="" aria-hidden="true" className="place-brand-icon" src="/images/branding/spottech-logo.png" />
+            <span>{place.name}</span>
+          </h3>
           <strong>{place.neighborhood}</strong>
         </div>
         <p>{place.description}</p>

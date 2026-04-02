@@ -1,36 +1,36 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { AdminCategoryPanel } from '../components/admin/AdminCategoryPanel';
+import { AdminPlaceFormPanel } from '../components/admin/AdminPlaceFormPanel';
+import { AdminRecentPlacesPanel } from '../components/admin/AdminRecentPlacesPanel';
+import { AdminSuggestionsPanel } from '../components/admin/AdminSuggestionsPanel';
+import { INITIAL_ADMIN_PLACE_FORM, type AdminPlaceFormState } from '../components/admin/types';
+import { useAuth } from '../contexts/AuthContext';
 import {
   createCategory,
   createPlace,
+  deleteCategory,
+  deletePlace,
   getAdminSuggestions,
   getCategories,
   getPlaces,
   updatePlace,
   updateSuggestionStatus,
 } from '../services/api';
-import { getStoredSession } from '../services/session';
 import type { Category, Place, Suggestion } from '../types/api';
+import { getUserInitials } from '../utils/user';
 
 export function AdminDashboardPage() {
-  const session = getStoredSession();
+  const { session } = useAuth();
   const [places, setPlaces] = useState<Place[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
-  const [placeForm, setPlaceForm] = useState({
-    name: '',
-    description: '',
-    address: '',
-    neighborhood: '',
-    latitude: '',
-    longitude: '',
-    imageUrl: '',
-    categoryId: '',
-  });
+  const [placeForm, setPlaceForm] = useState<AdminPlaceFormState>(INITIAL_ADMIN_PLACE_FORM);
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
   const [busySuggestionId, setBusySuggestionId] = useState<string | null>(null);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [deletingPlaceId, setDeletingPlaceId] = useState<string | null>(null);
   const [savingCategory, setSavingCategory] = useState(false);
   const [savingPlace, setSavingPlace] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -61,23 +61,20 @@ export function AdminDashboardPage() {
     });
   }, [session?.token]);
 
-  if (!session) {
-    return <Navigate replace to="/admin/login" />;
-  }
-
-  if (session.user.role !== 'ADMIN') {
-    return <Navigate replace to="/" />;
+  if (!session?.token) {
+    return null;
   }
 
   const token = session.token;
-  const adminInitials = session.user.name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((chunk) => chunk[0]?.toUpperCase() ?? '')
-    .join('');
-
+  const adminInitials = getUserInitials(session.user.name);
   const pendingSuggestions = suggestions.filter((item) => item.status === 'PENDING');
+
+  function updatePlaceFormField<K extends keyof AdminPlaceFormState>(field: K, value: AdminPlaceFormState[K]) {
+    setPlaceForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
 
   async function handleSuggestionStatus(id: string, status: 'APPROVED' | 'REJECTED') {
     setBusySuggestionId(id);
@@ -161,16 +158,7 @@ export function AdminDashboardPage() {
         return [...current, nextPlace];
       });
 
-      setPlaceForm({
-        name: '',
-        description: '',
-        address: '',
-        neighborhood: '',
-        latitude: '',
-        longitude: '',
-        imageUrl: '',
-        categoryId: '',
-      });
+      setPlaceForm(INITIAL_ADMIN_PLACE_FORM);
       setEditingPlaceId(null);
       setNotice(editingPlaceId ? 'Local atualizado com sucesso.' : 'Local cadastrado com sucesso.');
     } catch (submitError) {
@@ -204,16 +192,78 @@ export function AdminDashboardPage() {
 
   function handleCancelEdit() {
     setEditingPlaceId(null);
-    setPlaceForm({
-      name: '',
-      description: '',
-      address: '',
-      neighborhood: '',
-      latitude: '',
-      longitude: '',
-      imageUrl: '',
-      categoryId: '',
-    });
+    setPlaceForm(INITIAL_ADMIN_PLACE_FORM);
+  }
+
+  function handleDeleteCurrentPlace() {
+    if (!editingPlaceId) {
+      return;
+    }
+
+    const currentPlace = places.find((item) => item.id === editingPlaceId);
+
+    if (!currentPlace) {
+      return;
+    }
+
+    void handleDeletePlace(currentPlace);
+  }
+
+  async function handleDeleteCategory(category: Category) {
+    const confirmed = window.confirm(`Deseja realmente excluir a categoria "${category.name}"?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingCategoryId(category.id);
+    setError(null);
+    setNotice(null);
+
+    try {
+      await deleteCategory(token, category.id);
+      setCategories((current) => current.filter((item) => item.id !== category.id));
+      setPlaceForm((current) =>
+        current.categoryId === category.id
+          ? {
+              ...current,
+              categoryId: '',
+            }
+          : current,
+      );
+      setNotice('Categoria excluída com sucesso.');
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Não foi possível excluir a categoria.');
+    } finally {
+      setDeletingCategoryId(null);
+    }
+  }
+
+  async function handleDeletePlace(place: Place) {
+    const confirmed = window.confirm(`Deseja realmente excluir o local "${place.name}"?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingPlaceId(place.id);
+    setError(null);
+    setNotice(null);
+
+    try {
+      await deletePlace(token, place.id);
+      setPlaces((current) => current.filter((item) => item.id !== place.id));
+
+      if (editingPlaceId === place.id) {
+        handleCancelEdit();
+      }
+
+      setNotice('Local excluído com sucesso.');
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Não foi possível excluir o local.');
+    } finally {
+      setDeletingPlaceId(null);
+    }
   }
 
   return (
@@ -306,201 +356,37 @@ export function AdminDashboardPage() {
         {notice ? <p className="feedback success dashboard-feedback">{notice}</p> : null}
 
         <section className="admin-dashboard-grid admin-dashboard-grid-wide">
-          <div className="admin-panel">
-            <h2>Sugestões pendentes</h2>
-            <div className="admin-feed">
-              {pendingSuggestions.length > 0 ? (
-                pendingSuggestions.map((suggestion) => (
-                  <article className="suggestion-review-card" key={suggestion.id}>
-                    <div className="suggestion-review-header">
-                      <div>
-                        <strong>{suggestion.name}</strong>
-                        <p>{suggestion.categoryName}</p>
-                      </div>
-                      <div className="status-pill pending">PENDING</div>
-                    </div>
-
-                    <p>{suggestion.description || suggestion.address}</p>
-                    <small>
-                      {suggestion.neighborhood} · {suggestion.address}
-                    </small>
-                    <small>
-                      Coordenadas:{' '}
-                      {suggestion.latitude != null && suggestion.longitude != null
-                        ? `${suggestion.latitude}, ${suggestion.longitude}`
-                        : 'não informadas'}
-                    </small>
-
-                    <div className="suggestion-actions">
-                      <button
-                        className="action-button approve"
-                        disabled={busySuggestionId === suggestion.id}
-                        onClick={() => handleSuggestionStatus(suggestion.id, 'APPROVED')}
-                        type="button"
-                      >
-                        Aprovar
-                      </button>
-                      <button
-                        className="action-button reject"
-                        disabled={busySuggestionId === suggestion.id}
-                        onClick={() => handleSuggestionStatus(suggestion.id, 'REJECTED')}
-                        type="button"
-                      >
-                        Rejeitar
-                      </button>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <p className="feedback">Nenhuma sugestão pendente no momento.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="admin-panel">
-            <h2>Cadastrar categoria</h2>
-            <form className="admin-form" onSubmit={handleCreateCategory}>
-              <label>
-                Nome da categoria
-                <input
-                  value={categoryName}
-                  onChange={(event) => setCategoryName(event.target.value)}
-                  required
-                />
-              </label>
-
-              <button className="portal-primary-button" disabled={savingCategory} type="submit">
-                {savingCategory ? 'Salvando...' : 'Criar categoria'}
-              </button>
-            </form>
-
-            <div className="admin-mini-list">
-              {categories.map((category) => (
-                <div className="admin-mini-item" key={category.id}>
-                  <strong>{category.name}</strong>
-                  <small>{category.slug}</small>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="admin-panel">
-            <div className="admin-panel-heading">
-              <h2>{editingPlaceId ? 'Editar local' : 'Cadastrar local'}</h2>
-              {editingPlaceId ? (
-                <button className="ghost-button admin-inline-button" onClick={handleCancelEdit} type="button">
-                  Cancelar
-                </button>
-              ) : null}
-            </div>
-            <form className="admin-form admin-form-grid" onSubmit={handleCreatePlace}>
-              <label>
-                Nome
-                <input
-                  value={placeForm.name}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, name: event.target.value }))}
-                  required
-                />
-              </label>
-
-              <label>
-                Categoria
-                <select
-                  value={placeForm.categoryId}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, categoryId: event.target.value }))}
-                  required
-                >
-                  <option value="">Selecione</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="span-2">
-                Endereço
-                <input
-                  value={placeForm.address}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, address: event.target.value }))}
-                  required
-                />
-              </label>
-
-              <label>
-                Bairro
-                <input
-                  value={placeForm.neighborhood}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, neighborhood: event.target.value }))}
-                  required
-                />
-              </label>
-
-              <label>
-                URL da imagem
-                <input
-                  value={placeForm.imageUrl}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, imageUrl: event.target.value }))}
-                />
-              </label>
-
-              <label>
-                Latitude
-                <input
-                  step="any"
-                  type="number"
-                  value={placeForm.latitude}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, latitude: event.target.value }))}
-                />
-              </label>
-
-              <label>
-                Longitude
-                <input
-                  step="any"
-                  type="number"
-                  value={placeForm.longitude}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, longitude: event.target.value }))}
-                />
-              </label>
-
-              <label className="span-2">
-                Descrição
-                <textarea
-                  rows={4}
-                  value={placeForm.description}
-                  onChange={(event) => setPlaceForm((current) => ({ ...current, description: event.target.value }))}
-                  required
-                />
-              </label>
-
-              <button className="portal-primary-button span-2" disabled={savingPlace} type="submit">
-                {savingPlace ? 'Salvando...' : editingPlaceId ? 'Salvar alterações' : 'Cadastrar local'}
-              </button>
-            </form>
-          </div>
-
-          <div className="admin-panel">
-            <h2>Locais recentes</h2>
-            <div className="admin-list">
-              {places.slice(0, 8).map((place) => (
-                <div className="admin-list-item" key={place.id}>
-                  <span className="color-dot" />
-                  <div>
-                    <strong>{place.name}</strong>
-                    <p>{place.category.name}</p>
-                  </div>
-                  <div className="admin-list-actions">
-                    <small>{place.neighborhood}</small>
-                    <button className="admin-edit-button" onClick={() => handleEditPlace(place)} type="button">
-                      Editar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <AdminSuggestionsPanel
+            busySuggestionId={busySuggestionId}
+            onSuggestionStatus={handleSuggestionStatus}
+            suggestions={pendingSuggestions}
+          />
+          <AdminCategoryPanel
+            categories={categories}
+            categoryName={categoryName}
+            deletingCategoryId={deletingCategoryId}
+            onDeleteCategory={handleDeleteCategory}
+            onCategoryNameChange={setCategoryName}
+            onSubmit={handleCreateCategory}
+            savingCategory={savingCategory}
+          />
+          <AdminPlaceFormPanel
+            categories={categories}
+            deletingPlaceId={deletingPlaceId}
+            editingPlaceId={editingPlaceId}
+            onCancelEdit={handleCancelEdit}
+            onChange={updatePlaceFormField}
+            onDeleteCurrentPlace={handleDeleteCurrentPlace}
+            onSubmit={handleCreatePlace}
+            placeForm={placeForm}
+            savingPlace={savingPlace}
+          />
+          <AdminRecentPlacesPanel
+            deletingPlaceId={deletingPlaceId}
+            onDeletePlace={handleDeletePlace}
+            onEditPlace={handleEditPlace}
+            places={places}
+          />
         </section>
       </article>
     </section>

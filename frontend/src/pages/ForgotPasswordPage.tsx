@@ -5,6 +5,7 @@ import { forgotPassword } from '../services/api';
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -13,10 +14,12 @@ export function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
     setMessage(null);
+    setResetUrl(null);
 
     try {
       const response = await forgotPassword({ email });
       setMessage(response.message);
+      setResetUrl(response.resetUrl ?? null);
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -48,6 +51,11 @@ export function ForgotPasswordPage() {
 
           {message ? <p className="feedback success">{message}</p> : null}
           {error ? <p className="feedback error">{error}</p> : null}
+          {resetUrl ? (
+            <a className="primary-button" href={resetUrl}>
+              Abrir redefinição de senha
+            </a>
+          ) : null}
 
           <button className="primary-button" disabled={loading} type="submit">
             {loading ? 'Enviando...' : 'Enviar link'}
