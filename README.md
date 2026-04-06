@@ -1,4 +1,7 @@
 # SpotTech
+## Documentação complementar
+
+- [Relatório de testes da API](./TESTES_API.md)
 
 Plataforma web para descoberta, curadoria e gestão de locais turísticos e culturais de Manaus.
 
@@ -361,7 +364,7 @@ Depois elas podem ser usadas no sistema com caminhos como:
 
 ## Estado atual do projeto
 
-O projeto está funcional como MVP, com backend integrado ao frontend e fluxo administrativo básico implementado.
+O projeto está funcional , com backend integrado ao frontend e fluxo administrativo básico implementado.
 
 Pontos que ainda podem evoluir:
 - testes automatizados
