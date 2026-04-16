@@ -4,11 +4,35 @@ import { ZodError } from "zod";
 import { Prisma } from "../generated/prisma/client";
 import { routes } from "./routes";
 import { getPrismaErrorResponse } from "./utils/prismaError";
-
+import { env } from "./config/env";
 
 export const app = express();
 
-app.use(cors());
+const developmentOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+];
+
+const allowedOrigins = new Set<string>([
+  ...env.corsOrigins,
+  ...(env.frontendUrl ? [env.frontendUrl] : []),
+  ...(!env.isProduction ? developmentOrigins : []),
+]);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, allowedOrigins.has(origin));
+    },
+  }),
+);
 app.use(express.json());
 app.use(routes);
 

@@ -1,7 +1,7 @@
 # SpotTech
 ## Documentação complementar
 
-- [Relatório de testes da API](./TESTES_API.md)
+- [Relatório de testes da API](./TESTE_API.md)
 
 Plataforma web para descoberta, curadoria e gestão de locais turísticos e culturais de Manaus.
 
@@ -116,6 +116,26 @@ Se estiver usando Docker para o banco, um exemplo de inicialização seria:
 
 ```bash
 docker start portal-cultural-db
+```
+
+## Comandos úteis na raiz
+
+Você pode executar os comandos principais a partir da raiz do projeto:
+
+```bash
+npm run dev:backend
+npm run dev:frontend
+npm run typecheck
+npm run build
+```
+
+Para comandos do Prisma (backend):
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:migrate:deploy
+npm run prisma:seed
 ```
 
 ## Configuração do backend

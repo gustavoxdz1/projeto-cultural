@@ -16,6 +16,7 @@ build/
 coverage/
 *.tsbuildinfo
 frontend/vite.config.d.ts
+vite.config.d.ts
 
 # Environment and secrets
 .env
@@ -67,6 +68,9 @@ backend/uploads/
 backend/upload/
 backend/storage/
 backend/tmp/
+uploads/
+upload/
+storage/
 
 # Prisma generated client
 backend/generated/
